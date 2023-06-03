@@ -1,6 +1,42 @@
 import cv2
 import numpy as np
 
+
+class Orange:
+
+    #laranja 
+    max = np.array([8, 255, 255])
+    min = np.array([21, 89, 116])
+    has = False
+    pixels = 0
+
+
+class Red:
+    #vermelho
+    max = np.array([179, 255, 255])
+    min = np.array([170, 105, 125])
+    has = False
+    pixels = 0
+
+
+class Green:
+
+    #verde
+    max = np.array([101, 255, 150])
+    min = np.array([84, 113, 60])
+    has = False
+    pixels = 0
+
+
+class Yellow:
+
+    #amarelo
+    max = np.array([30, 255, 255])
+    min = np.array([20, 120, 113])
+    has = False
+    pixels = 0
+
+
 class Camera:
 
 
@@ -18,35 +54,49 @@ class Camera:
         width_min = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH) * scale / 2)
         width_max = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH) - width_min)
 
-        # banda de cores
-        #laranja 
-        orange_max = np.array([20, 255, 255])
-        orange_min = np.array([10, 174, 111])
-
-        #vermelho
-        red_max = np.array([5, 255, 255])
-        red_min = np.array([0, 160, 95])
-
-        #verde
-        green_max = np.array([95, 120, 255])
-        green_min = np.array([36, 49, 46])
-
-        #amarelo
-        yellow_max = np.array([30, 255, 255])
-        yellow_min = np.array([20, 120, 113])
 
         while (self.cap.isOpened()):
             self.ret, self.frame = self.cap.read()
             self.crop = self.frame[height_min:height_max, width_min:width_max]
         
             cv2.imshow("teste", self.crop)
-            cv2.imshow("normal", self.frame)
+
+            self.detect()
+
+            for color in [Orange, Green, Red, Yellow]:
+                if color.has == True:
+                     print(color)
+
 
             if cv2.waitKey(1) == ord('q'):
                 break
 
         self.cap.release()
         cv2.destroyAllWindows()
+
+
+    def detect(self):
+
+        colors = [Yellow, Green, Red, Orange]
+        kernel = np.ones((5, 5), np.uint8)
+        threshold = 5000
+
+        for color in colors:
+            #conversão de bgr (padrão do cv) para hsv (padrão usado na detecção)
+            hsv = cv2.cvtColor(self.crop, cv2.COLOR_BGR2HSV)
+
+            #matriz com a cor desejada
+            mask = cv2.inRange(hsv, color.min, color.max)
+            mask = cv2.morphologyEx(mask, cv2.MORPH_DILATE, kernel=kernel)
+            
+
+            color.pixels = np.sum(mask[:,:] > 0)
+
+
+            if color.pixels > threshold:
+                    color.has = True
+            else:
+                    color.has = False
 
 
 p1 = Camera()
