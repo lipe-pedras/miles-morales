@@ -12,6 +12,7 @@ class Orange:
 
 
 class Red:
+
     #vermelho
     max = np.array([179, 255, 255])
     min = np.array([170, 105, 125])
@@ -54,7 +55,7 @@ class Camera:
         width_min = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH) * scale / 2)
         width_max = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH) - width_min)
 
-
+        #main
         while (self.cap.isOpened()):
             self.ret, self.frame = self.cap.read()
             self.crop = self.frame[height_min:height_max, width_min:width_max]
@@ -63,9 +64,12 @@ class Camera:
 
             self.detect()
 
+            self.check_colors()
+
+            #state changer
             for color in [Orange, Green, Red, Yellow]:
                 if color.has == True:
-                     print(color)
+                    print(color)
 
 
             if cv2.waitKey(1) == ord('q'):
@@ -97,6 +101,36 @@ class Camera:
                     color.has = True
             else:
                     color.has = False
+
+    
+    def check_colors(self):
+        #condição para se mais de uma cor for verdadeira
+        if sum([Orange.has, Red.has, Green.has, Yellow.has]) > 1:
+             
+            print("More than one color has been detected!")
+
+            
+            for color1 in [Orange, Red, Green, Yellow]:
+                for color2 in [Orange, Red, Green, Yellow]:
+                         
+                    #condição para evitar que uma classe seja comparada consigo mesma.
+                    if not (color1 == color2):
+                        if color1.has and color2.has:
+                                
+                            #parâmetro para prioridade.
+                            if color1.pixels > color2.pixels:
+                                color2.has = False
+                                print(f"{color2} setted to False")
+
+                            else:
+                                color1.has = False
+                                print(f"{color1} setted to False")
+                    #remover depois
+                    else:
+                            print(color1, color2)
+        else:
+            #volta para a execução normal.
+             pass
 
 
 p1 = Camera()
