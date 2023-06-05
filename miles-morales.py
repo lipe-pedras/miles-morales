@@ -29,6 +29,14 @@ class Yellow:
     has = False
     pixels = 0
 
+# dictionary of each subtitle colour
+color_subtitles = {
+    Orange: "Laranja",
+    Red: "Vermelho",
+    Green: "Verde",
+    Yellow: "Amarelo"
+}
+
 class Camera:
     def __init__(self):
         self.cap = cv2.VideoCapture(0)
@@ -78,15 +86,22 @@ class Camera:
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
             # Draw contours on the frame
-            cv2.drawContours(self.crop, contours, -1, (0, 255, 0), 2)
+            cv2.drawContours(self.crop, contours, -1, (0, 0, 0), 2)
 
             # Adding subtitles to the countours
             for contour in contours:
                 if len(contour) >= 4: #check if the contour is a rectangle    
                     x, y, w, h = cv2.boundingRect(contour)
-                    color_name = color.__class__.__name__
-                    cv2.putText(self.crop, color_name, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 0), 2, cv2.LINE_AA)
+                    color_name = color_subtitles[color] 
                     
+                    # Centering subtitles:
+                    text_size, _ = cv2.getTextSize(color_name, cv2.FONT_HERSHEY_SIMPLEX, 0.9, 2)
+
+                    # Calculus of the central position:
+                    text_x = x + (w - text_size[0]) // 2
+                    text_y = y + (h - text_size[1]) // 2    
+                        
+                    cv2.putText(self.crop, color_name, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 0), 2, cv2.LINE_AA)
 
     def check_colors(self):
         # Condition if more than one color is detected
