@@ -90,6 +90,14 @@ class Camera:
             # Draw contours on the frame
             cv2.drawContours(self.crop, contours, -1, (0, 0, 0), 2)
 
+            # Adding subtitles to the countours
+            for contour in contours:
+                if len(contour) >= 4: #check if the contour is a rectangle    
+                    x, y, w, h = cv2.boundingRect(contour)
+                    color_name = color.__class__.__name__
+                    cv2.putText(self.crop, color_name, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 0), 2, cv2.LINE_AA)
+                    
+
     def check_colors(self):
         # Condition if more than one color is detected
         if sum([Orange.has, Red.has, Green.has, Yellow.has]) > 1:
@@ -114,7 +122,7 @@ class Camera:
             # Continue normal execution
             pass
 
-    
+
     def action(self, color, drone):
 
         if color == Orange:
@@ -128,6 +136,7 @@ class Camera:
         
         elif color == Yellow:
             print("indo para frente")
+
 
 p1 = Camera()
 p1.run()
