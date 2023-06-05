@@ -2,28 +2,28 @@ import cv2
 import numpy as np
 
 class Orange:
-    # laranja 
+ 
     max = np.array([8, 255, 255])
     min = np.array([21, 89, 116])
     has = False
     pixels = 0
 
 class Red:
-    # vermelho
+
     max = np.array([179, 255, 255])
     min = np.array([170, 105, 125])
     has = False
     pixels = 0
 
 class Green:
-    # verde
+
     max = np.array([101, 255, 150])
     min = np.array([84, 113, 60])
     has = False
     pixels = 0
 
 class Yellow:
-    # amarelo
+
     max = np.array([30, 255, 255])
     min = np.array([20, 120, 113])
     has = False
@@ -32,21 +32,31 @@ class Yellow:
 class Camera:
     def __init__(self):
         self.cap = cv2.VideoCapture(0)
+        #size cutting -> 20% means 10% for each side of the image/video
+        scale = 0.2
+
+        self.height_min = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT) * scale / 2)
+        self.height_max = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT) - self.height_min)
+
+        self.width_min = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH) * scale / 2)
+        self.width_max = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH) - self.width_min)
 
     def run(self):
+
+        #main ----------------------------------------------------------------------------------------------------------------
         while self.cap.isOpened():
             ret, frame = self.cap.read()
             if not ret:
                 break
 
-            self.crop = frame
+            self.crop = frame[self.height_min:self.height_max, self.width_min:self.width_max]
 
             self.detect()
 
             self.check_colors()
 
             # Show the frame with contours
-            cv2.imshow("frame", frame)
+            cv2.imshow("frame", self.crop)
 
             if cv2.waitKey(1) == ord("q"):
                 break
@@ -78,7 +88,7 @@ class Camera:
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
             # Draw contours on the frame
-            cv2.drawContours(self.crop, contours, -1, (0, 255, 0), 2)
+            cv2.drawContours(self.crop, contours, -1, (0, 0, 0), 2)
 
     def check_colors(self):
         # Condition if more than one color is detected
@@ -103,6 +113,21 @@ class Camera:
         else:
             # Continue normal execution
             pass
+
+    
+    def action(self, color, drone):
+
+        if color == Orange:
+            print("pousando...")
+        
+        elif color == Red:
+            print("indo para direita")
+
+        elif color == Green:
+            print("flip")
+        
+        elif color == Yellow:
+            print("indo para frente")
 
 p1 = Camera()
 p1.run()
