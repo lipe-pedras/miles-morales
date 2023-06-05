@@ -3,8 +3,8 @@ import numpy as np
 
 class Orange:
  
-    max = np.array([8, 255, 255])
-    min = np.array([21, 89, 116])
+    max = np.array([11, 170, 255])
+    min = np.array([3, 107, 123])
     has = False
     pixels = 0
 
@@ -62,6 +62,12 @@ class Camera:
             self.detect()
 
             self.check_colors()
+
+            for color in [Orange, Green, Red, Yellow]:
+                if color.has == True:
+                    self.action(color)
+                    print(color)
+                
 
             # Show the frame with contours
             cv2.imshow("frame", self.crop)
@@ -138,7 +144,7 @@ class Camera:
             pass
 
 
-    def action(self, color, drone):
+    def action(self, color):
 
         if color == Orange:
             print("pousando...")
