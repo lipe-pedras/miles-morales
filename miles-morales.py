@@ -3,22 +3,22 @@ import numpy as np
 
 class Orange:
  
-    max = np.array([11, 170, 255])
+    max = np.array([20, 170, 255])
     min = np.array([3, 107, 123])
     has = False
     pixels = 0
 
 class Red:
 
-    max = np.array([179, 255, 255])
-    min = np.array([170, 105, 125])
+    max = np.array([179, 170, 255])
+    min = np.array([169, 90, 99])
     has = False
     pixels = 0
 
 class Green:
 
     max = np.array([101, 255, 150])
-    min = np.array([84, 113, 60])
+    min = np.array([84, 105, 60])
     has = False
     pixels = 0
 
@@ -42,6 +42,7 @@ class Camera:
         self.cap = cv2.VideoCapture(0)
         #size cutting -> 20% means 10% for each side of the image/video
         scale = 0.2
+        self.last_color = None
 
         self.height_min = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT) * scale / 2)
         self.height_max = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT) - self.height_min)
@@ -64,9 +65,12 @@ class Camera:
             self.check_colors()
 
             for color in [Orange, Green, Red, Yellow]:
-                if color.has == True:
-                    self.action(color)
-                    print(color)
+                if color.has == True and color != self.last_color:
+                    self.last_color = self.action(color=color)
+
+                
+                elif sum([Orange.has, Red.has, Green.has, Yellow.has]) == 0:
+                    self.last_color = self.action(color=None)
                 
 
             # Show the frame with contours
@@ -80,7 +84,7 @@ class Camera:
 
     def detect(self):
         colors = [Yellow, Green, Red, Orange]
-        kernel = np.ones((5, 5), np.uint8)
+        kernel = np.ones((10, 10), np.uint8)
         threshold = 5000
 
         for color in colors:
@@ -91,22 +95,19 @@ class Camera:
             mask = cv2.inRange(hsv, color.min, color.max)
             mask = cv2.morphologyEx(mask, cv2.MORPH_DILATE, kernel=kernel)
             
-            color.pixels = np.sum(mask[:, :] > 0)
-
-            if color.pixels > threshold:
-                color.has = True
-            else:
-                color.has = False
-
             # Find contours in the mask
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-            # Draw contours on the frame
-            cv2.drawContours(self.crop, contours, -1, (0, 0, 0), 2)
-
-            # Adding subtitles to the countours
             for contour in contours:
-                if len(contour) >= 4: #check if the contour is a rectangle    
+                area = cv2.contourArea(contour)
+                if area > threshold:
+                    color.has = True
+                    color.pixels = area
+
+                    # Draw contours on the frame
+                    cv2.drawContours(self.crop, contour, -1, (0, 0, 0), 2)
+
+                    # Adding subtitles to the countours  
                     x, y, w, h = cv2.boundingRect(contour)
                     color_name = color_subtitles[color] 
                     
@@ -118,6 +119,11 @@ class Camera:
                     text_y = y + (h - text_size[1]) // 2    
                         
                     cv2.putText(self.crop, color_name, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 0), 2, cv2.LINE_AA)
+                else:
+                    color.has = False
+                    color.pixels = 0
+                
+
 
     def check_colors(self):
         # Condition if more than one color is detected
@@ -146,18 +152,22 @@ class Camera:
 
     def action(self, color):
 
+        if color == None and self.last_color != None:
+            print(f"nenhuma cor detectada...")
+
         if color == Orange:
-            print("pousando...")
+            print(f"{color} pousando...")
         
         elif color == Red:
-            print("indo para direita")
+            print(f"{color} indo para direita")
 
         elif color == Green:
-            print("flip")
+            print(f"{color} flip")
         
         elif color == Yellow:
-            print("indo para frente")
+            print(f"{color} indo para frente")
 
+        return color
 
 p1 = Camera()
 p1.run()
